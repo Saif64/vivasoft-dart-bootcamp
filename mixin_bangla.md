@@ -1,28 +1,28 @@
-## Dart-এর গোপন উপাদান: Mixins দিয়ে কার্যকারিতা যুক্ত করুন
+## Dart-এর জাদু: Mixin দিয়ে নতুন স্বাদ যোগ করুন আপনার কোডে
 
-আপনি আপনার Dart application তৈরি করছেন, এবং আপনি বিভিন্ন class-এর জন্য একই ধরনের code লিখছেন। হতে পারে এটি একটি logging feature, object serialize করার একটি উপায়, বা কিছু সাধারণ utility method। আপনি inheritance ব্যবহার করতে পারতেন, কিন্তু যদি আপনার class-গুলোর ইতিমধ্যে একটি superclass থাকে, অথবা అవి সম্পূর্ণ ভিন্ন hierarchy-তে থাকে? এখানেই Dart-এর চমৎকার সমাধান, **Mixins**, কাজে আসে।
+ধরুন আপনি আপনার Dart অ্যাপ্লিকেশনটি তৈরি করছেন, আর হঠাৎ দেখলেন বিভিন্ন class-এর জন্য একই রকম কোড বারবার লিখতে হচ্ছে। হতে পারে এটা কোনো লগিং (logging) ফিচার, অবজেক্টগুলোকে সাজানোর (serialize) কোনো উপায়, কিংবা কিছু সাধারণ দরকারি মেথড (method)। আপনি হয়তো ভাবছেন ইনহেরিটেন্স (inheritance) ব্যবহার করবেন, কিন্তু যদি আপনার ক্লাসগুলোর ইতোমধ্যেই একটা সুপারক্লাস (superclass) থাকে? অথবা যদি সেগুলো সম্পূর্ণ ভিন্ন জগতে বাস করে? ঠিক এইখানেই Dart-এর চমৎকার সমাধান, **Mixins**, আপনার কাজে আসবে।
 
-Mixin-গুলোকে এমন একটি উপায় হিসাবে ভাবুন যেখানে কিছু method এবং property-কে একত্রিত করে বিদ্যমান class-গুলোতে "mix" করা যায়, যা multiple inheritance-এর জটিলতা ছাড়াই তাদের নতুন ক্ষমতা দেয়। এগুলো code reuse এবং আপনার class hierarchy-গুলোকে পরিষ্কার ও কেন্দ্রীভূত রাখার জন্য একটি দুর্দান্ত tool।
+Mixin-গুলোকে অনেকটা রেডিমেড মশলার প্যাকেটের মতো ভাবতে পারেন। এই প্যাকেটে কিছু মেথড (method) আর প্রোপার্টি (property) মেশানো থাকে, যা আপনি আপনার বিদ্যমান class-গুলোতে মিশিয়ে দিতে পারেন। এর ফলে ক্লাসগুলো নতুন ক্ষমতা পেয়ে যায়, তাও আবার মাল্টিপল ইনহেরিটেন্সের (multiple inheritance) মতো জটিল ঝামেলা ছাড়াই। কোড পুনরায় ব্যবহার (code reuse) করার জন্য এবং আপনার ক্লাসগুলোর গঠন পরিষ্কার আর গোছালো রাখার জন্য এটি একটি অসাধারণ টুল।
 
-### Mixins কেন? পুনঃব্যবহারযোগ্য Code-এর অনুসন্ধান
+### Mixin কেন? কোড বারবার না লেখার এই চেষ্টা
 
-Mixin-এর প্রাথমিক লক্ষ্য হল দক্ষতার সাথে এবং নমনীয়ভাবে code reuse করা।
+Mixin-এর মূল উদ্দেশ্য হলো দক্ষতার সাথে এবং নমনীয়ভাবে কোড পুনরায় ব্যবহার করা।
 
-  * **DRY Principle (Don't Repeat Yourself):** একাধিক class-এ একই method copy-paste করার পরিবর্তে, আপনি সেগুলোকে একবার একটি mixin-এ সংজ্ঞায়িত করুন এবং যেখানে প্রয়োজন সেখানে প্রয়োগ করুন।
-  * **Composing Behaviors:** আপনি নির্দিষ্ট আচরণ (যেমন "loggable" বা "serializable" হওয়া) এমন class-গুলোতে যোগ করতে পারেন যা অন্যথায় সম্পর্কহীন হতে পারে। একটি `Car` এবং একটি `Document` সম্ভবত `Object` ছাড়া আর কোনো সাধারণ ancestor শেয়ার করে না, কিন্তু উভয়ই একটি `Timestamped` আচরণ থেকে উপকৃত হতে পারে।
-  * **Avoiding Deep Inheritance Chains:** কখনও কখনও, inheritance-এর মাধ্যমে code শেয়ার করার চেষ্টা করলে তা বিদঘুটে, গভীর এবং ভঙ্গুর class hierarchy তৈরি করতে পারে। Mixin-গুলো কার্যকারিতা শেয়ার করার একটি সহজ উপায় সরবরাহ করে।
-  * **No Multiple Inheritance Headaches:** Dart প্রথাগত multiple inheritance (যেখানে একটি class সরাসরি একাধিক superclass থেকে inherit করতে পারে) সমর্থন করে না কারণ এতে "diamond problem"-এর মতো সমস্যা দেখা দেয়। Mixin-গুলো এই সমস্যা ছাড়াই একাধিক উৎস থেকে code reuse করার সুবিধা প্রদান করে।
+  * **DRY নীতি (Don't Repeat Yourself):** একই মেথড (method) একাধিক class-এ কপি-পেস্ট করার বদলে, আপনি সেগুলো একবার একটি mixin-এ লিখে ফেলুন এবং যেখানে প্রয়োজন সেখানে ব্যবহার করুন।
+  * **আচরণ যুক্ত করা (Composing Behaviors):** আপনি নির্দিষ্ট কিছু আচরণ (যেমন "loggable" হওয়া বা "serializable" হওয়া) এমন class-গুলোতেও যোগ করতে পারবেন যাদের মধ্যে হয়তো কোনো সম্পর্কই নেই। একটা `Car` আর একটা `Document` হয়তো `Object` ছাড়া আর কোনো সাধারণ পূর্বপুরুষ শেয়ার করে না, কিন্তু দুজনেই একটা `Timestamped` আচরণ থেকে সুবিধা পেতে পারে।
+  * **গভীর ইনহেরিটেন্সের (Deep Inheritance Chains) ঝামেলা এড়ানো:** কখনও কখনও, ইনহেরিটেন্সের মাধ্যমে কোড শেয়ার করতে গেলে বিদঘুটে, গভীর আর ভঙ্গুর class hierarchy তৈরি হতে পারে। Mixin কার্যকারিতা শেয়ার করার একটা সহজ উপায় বাতলে দেয়।
+  * **মাল্টিপল ইনহেরিটেন্সের (Multiple Inheritance) মাথাব্যথা নেই:** Dart সরাসরি একাধিক সুপারক্লাস (superclass) থেকে ইনহেরিট করার মতো গতানুগতিক মাল্টিপল ইনহেরিটেন্স সমর্থন করে না। কারণ এতে "ডায়মন্ড সমস্যা" (diamond problem)-এর মতো জটিলতা দেখা দেয়। Mixin এই ধরনের সমস্যা ছাড়াই একাধিক উৎস থেকে কোড পুনরায় ব্যবহারের সুবিধা দেয়।
 
-### Mixins দিয়ে কীভাবে কাজ করবেন: `mixin` এবং `with`
+### Mixin নিয়ে কাজ করবেন কীভাবে: `mixin` এবং `with`
 
-Dart-এ mixin সংজ্ঞায়িত করা এবং ব্যবহার করা খুবই সহজ।
+Dart-এ mixin তৈরি করা আর ব্যবহার করা খুবই সহজ।
 
-**১. একটি Mixin সংজ্ঞায়িত করা:**
-আপনি `mixin` keyword ব্যবহার করে একটি mixin ঘোষণা করেন। এর ভিতরে, আপনি instance variable এবং method সংজ্ঞায়িত করতে পারেন, ঠিক একটি class-এর মতো। তবে, একটি সাধারণ `mixin`-এর নিজস্ব কোনো declared constructor থাকতে পারে না।
+**১. একটি Mixin তৈরি করা:**
+আপনি `mixin` কিওয়ার্ড ব্যবহার করে একটি mixin ঘোষণা করেন। এর ভেতরে, আপনি instance variable এবং মেথড (method) তৈরি করতে পারেন, ঠিক একটা class-এর মতোই। তবে, সাধারণ `mixin`-এর নিজস্ব কোনো constructor থাকতে পারে না।
 
 ```dart
 mixin Logger {
-  String _logPrefix = "LOG"; // Mixins can have instance variables
+  String _logPrefix = "LOG"; // Mixin-এর নিজস্ব instance variable থাকতে পারে
 
   void setLogPrefix(String prefix) {
     _logPrefix = prefix;
@@ -35,7 +35,7 @@ mixin Logger {
 ```
 
 **২. একটি Mixin ব্যবহার করা:**
-আপনি class declaration-এ `with` keyword ব্যবহার করে একটি class-এ mixin প্রয়োগ করেন।
+আপনি class ঘোষণার সময় `with` কিওয়ার্ড ব্যবহার করে একটি class-এ mixin প্রয়োগ করেন।
 
 ```dart
 class Product {
@@ -49,16 +49,16 @@ class Product {
   }
 }
 
-// Now, let's give our Product class logging capabilities
+// এবার, আমাদের Product ক্লাসকে লগিং ক্ষমতা দেওয়া যাক
 class LoggableProduct extends Product with Logger {
   LoggableProduct(String name, double price) : super(name, price) {
-    // We can even customize the logger from the class using it
+    // আমরা চাইলে যে ক্লাস mixin ব্যবহার করছে, সেখান থেকেও logger-কে নিজের মতো করে নিতে পারি
     setLogPrefix("PRODUCT_LOG");
   }
 
   void doSomethingAndLog() {
     log('Doing something important with $name...');
-    // ... some product-specific logic ...
+    // ... কিছু product-এর নিজস্ব কাজ ...
     log('Finished doing something with $name.');
   }
 }
@@ -66,28 +66,28 @@ class LoggableProduct extends Product with Logger {
 void main() {
   var myProduct = LoggableProduct('Awesome Gadget', 29.99);
   myProduct.display();
-  myProduct.doSomethingAndLog(); // Uses the mixed-in log method!
+  myProduct.doSomethingAndLog(); // mixin থেকে আসা log মেথডটি ব্যবহার করছে!
   myProduct.log("A direct log call.");
 }
 ```
 
-এই উদাহরণে, `LoggableProduct` ক্লাসটি `Product` থেকে inherit করে এবং `Logger` mixin থেকে সমস্ত method এবং property লাভ করে।
+এই উদাহরণে, `LoggableProduct` ক্লাসটি `Product` থেকে ইনহেরিট (inherit) করে এবং সেই সাথে `Logger` mixin থেকে সমস্ত মেথড (method) আর প্রোপার্টিও (property) পেয়ে যায়।
 
-**৩. `on` Constraint: Superclass-এর আবশ্যকতা নির্দিষ্ট করা**
-কখনও কখনও, একটি mixin-কে এমন method বা property-র উপর নির্ভর করতে হয় যা গ্রাসকারী class (বা এর superclass-গুলো) প্রদান করবে বলে আশা করা হয়। আপনি `on` keyword ব্যবহার করে এই dependency নির্দিষ্ট করতে পারেন। এটি আপনার mixin-কে আরও শক্তিশালী এবং type-safe করে তোলে।
+**৩. `on` বাধা: সুপারক্লাসের প্রয়োজনীয়তা উল্লেখ করা**
+কখনও কখনও, একটি mixin এমন কিছু মেথড (method) বা প্রোপার্টির (property) উপর নির্ভর করতে চায় যা ব্যবহারকারী class (বা তার সুপারক্লাসগুলো) সরবরাহ করবে বলে আশা করা হয়। আপনি `on` কিওয়ার্ড ব্যবহার করে এই নির্ভরতা নির্দিষ্ট করতে পারেন। এটি আপনার mixin-কে আরও শক্তিশালী এবং টাইপ-সেফ (type-safe) করে তোলে।
 
 ```dart
-// A base class that all entities with an ID should extend
+// একটি বেস ক্লাস (base class) যা id আছে এমন সব entity-কে extend করা উচিত
 abstract class Identifiable {
-  String get id; // Abstract getter, must be implemented by subclasses
+  String get id; // Abstract getter, সাবক্লাসকে এটি অবশ্যই ইমপ্লিমেন্ট করতে হবে
 }
 
-// This mixin can only be applied to classes that extend or implement Identifiable
+// এই mixin শুধুমাত্র সেইসব class-এ প্রয়োগ করা যাবে যারা Identifiable-কে extend বা implement করে
 mixin UniqueChecker on Identifiable {
-  // This mixin can now safely access 'id' because of the 'on' constraint
+  // এই mixin এখন নিরাপদে 'id' অ্যাক্সেস করতে পারবে কারণ 'on' বাধা দেওয়া আছে
   void verifyUniqueness() {
     print('Verifying uniqueness for ID: $id...');
-    // ... logic to check if id is unique in some datastore ...
+    // ... কোনো ডেটাস্টোরে id ইউনিক কিনা তা চেক করার লজিক ...
     print('ID: $id is unique.');
   }
 }
@@ -119,37 +119,37 @@ class Order extends Identifiable with UniqueChecker {
 void main() {
   var user = User('user-123', 'Alice');
   user.display();
-  user.verifyUniqueness(); // Method from UniqueChecker mixin
+  user.verifyUniqueness(); // UniqueChecker mixin থেকে আসা মেথড
 
   var order = Order('order-abc', 99.50);
   order.display();
-  order.verifyUniqueness(); // Also works on Order!
+  order.verifyUniqueness(); // Order ক্লাসের সাথেও কাজ করছে!
 
-  // This would be a compile-time error because UnrelatedClass doesn't implement Identifiable:
+  // এটি একটি কম্পাইল-টাইম এরর (compile-time error) দেবে কারণ UnrelatedClass, Identifiable-কে ইমপ্লিমেন্ট করে না:
   // class UnrelatedClass with UniqueChecker {}
 }
 ```
 
-`UniqueChecker` mixin-টি আত্মবিশ্বাসের সাথে `this.id` ব্যবহার করতে পারে কারণ `on Identifiable` ধারাটি নিশ্চিত করে যে `UniqueChecker` ব্যবহার করা যেকোনো class-এর একটি `id` property থাকবে।
+`UniqueChecker` mixin-টি আত্মবিশ্বাসের সাথে `this.id` ব্যবহার করতে পারে কারণ `on Identifiable` ধারাটি নিশ্চিত করে যে `UniqueChecker` ব্যবহার করা যেকোনো class-এর একটি `id` প্রোপার্টি (property) থাকবে।
 
-### মনে রাখার মতো গুরুত্বপূর্ণ বিষয়
+### মনে রাখার মতো কিছু জরুরি বিষয়
 
-  * **Linearization:** যখন একটি class একাধিক mixin ব্যবহার করে, তখন সেগুলো একটি নির্দিষ্ট ক্রমে প্রয়োগ করা হয় - `with` clause-এ বাম থেকে ডানে। যদি mixin-গুলো একই নামের method সংজ্ঞায়িত করে, তাহলে `with` clause-এ পরে আসা mixin-এর method আগেরগুলোকে "override" করে। Mixin-গুলোর method superclass-এর method-গুলোকেও override করে।
-  * **Superclassing-এর জন্য সত্যিকারের "Is-A" নয়:** যদিও `ClassA with MixinB`-এর একটি instance প্রকৃতপক্ষে `MixinB` type-এর (অর্থাৎ, `instance is MixinB` সত্য হবে), mixin-গুলো প্রাথমিকভাবে ক্ষমতা প্রদান করে, প্রথাগত inheritance-এর মতো কঠোর "is-a" শ্রেণিবদ্ধ সম্পর্ক সংজ্ঞায়িত করে না।
-  * **State and Behavior:** Mixin-গুলো state (instance variable) এবং behavior (method) উভয়ই প্রবর্তন করতে পারে।
+  * **Linearization (রৈখিকীকরণ):** যখন একটি class একাধিক mixin ব্যবহার করে, তখন সেগুলো একটি নির্দিষ্ট ক্রমে প্রয়োগ করা হয় – `with` ক্লজে বাম থেকে ডানে। যদি mixin-গুলো একই নামের মেথড (method) সংজ্ঞায়িত করে, তাহলে `with` ক্লজে পরে আসা mixin-এর মেথড (method) আগেরগুলোকে "ওভাররাইড" (override) করে। Mixin-গুলোর মেথড (method) সুপারক্লাসের (superclass) মেথডগুলোকেও (method) ওভাররাইড (override) করে।
+  * **সুপারক্লাসিং-এর জন্য সত্যিকারের "Is-A" সম্পর্ক নয়:** যদিও `ClassA with MixinB`-এর একটি ইনস্ট্যান্স (instance) প্রকৃতপক্ষে `MixinB` টাইপের (অর্থাৎ, `instance is MixinB` সত্য হবে), mixin-গুলো প্রাথমিকভাবে কিছু ক্ষমতা যোগ করে, প্রথাগত ইনহেরিটেন্সের (inheritance) মতো কঠোর "is-a" শ্রেণিবদ্ধ সম্পর্ক সংজ্ঞায়িত করে না।
+  * **State এবং Behavior:** Mixin-গুলো state (instance variable) এবং behavior (method) উভয়ই যোগ করতে পারে।
 
 ### বাস্তব জীবনের ব্যবহার: Backend System-এ Entity-গুলোকে `Taggable` করা
 
-কল্পনা করুন আপনি Dart-এ একটি backend system তৈরি করছেন বিভিন্ন ধরনের content বা entity পরিচালনার জন্য – সম্ভবত `Article`, `ImageFile`, এবং `UserNote`। একটি সাধারণ প্রয়োজনীয়তা হতে পারে ব্যবহারকারীদের এই আইটেমগুলোর যেকোনোটিতে বর্ণনামূলক tag যুক্ত করার অনুমতি দেওয়া।
+ভাবুন আপনি Dart-এ একটি backend system তৈরি করছেন বিভিন্ন ধরনের কনটেন্ট বা entity পরিচালনার জন্য – যেমন `Article`, `ImageFile`, এবং `UserNote`। একটি সাধারণ চাহিদা হতে পারে ব্যবহারকারীদের এই আইটেমগুলোর যেকোনোটিতে বর্ণনামূলক tag যুক্ত করার অনুমতি দেওয়া।
 
-প্রতিটি class-এ tagging logic প্রয়োগ করার পরিবর্তে, আমরা একটি `Taggable` mixin তৈরি করতে পারি।
+প্রতিটি class-এ tagging লজিক ইমপ্লিমেন্ট (implement) করার পরিবর্তে, আমরা একটি `Taggable` mixin তৈরি করতে পারি।
 
 ```dart
 mixin Taggable {
-  // Private list to hold the tags. Each class using this mixin gets its own _tags list.
+  // ট্যাগগুলো রাখার জন্য একটি private লিস্ট। এই mixin ব্যবহার করা প্রতিটি ক্লাস নিজস্ব _tags লিস্ট পাবে।
   final List<String> _tags = [];
 
-  List<String> get tags => List.unmodifiable(_tags); // Provide a read-only view
+  List<String> get tags => List.unmodifiable(_tags); // শুধুমাত্র পড়ার জন্য একটি ভিউ দেওয়া হচ্ছে
 
   void addTag(String tag) {
     if (tag.trim().isNotEmpty && !_tags.contains(tag.trim())) {
@@ -177,7 +177,7 @@ mixin Taggable {
   }
 }
 
-// --- Our different entity classes ---
+// --- আমাদের বিভিন্ন entity ক্লাস ---
 
 class Article {
   String title;
@@ -201,7 +201,7 @@ class ImageFile {
   }
 }
 
-// --- Now, let's make them Taggable ---
+// --- এবার, এগুলোকে Taggable করা যাক ---
 
 class TaggableArticle extends Article with Taggable {
   TaggableArticle(String title, String content) : super(title, content);
@@ -216,8 +216,8 @@ void main() {
   myArticle.publish();
   myArticle.addTag("Dart");
   myArticle.addTag("Programming");
-  myArticle.addTag("  Dart  "); // Test trimming and duplicates
-  myArticle.displayTags(); // Output: Tags: Dart, Programming
+  myArticle.addTag("  Dart  "); // ফাঁকা জায়গা এবং ডুপ্লিকেট ট্যাগ পরীক্ষা
+  myArticle.displayTags(); // আউটপুট: Tags: Dart, Programming
 
   print('---');
 
@@ -227,17 +227,17 @@ void main() {
   myImage.addTag("Scenery");
   myImage.removeTag("Scenery");
   myImage.addTag("Travel");
-  print('Has "Nature" tag? ${myImage.hasTag("Nature")}'); // Output: true
-  myImage.displayTags(); // Output: Tags: Nature, Travel
+  print('Has "Nature" tag? ${myImage.hasTag("Nature")}'); // আউটপুট: true
+  myImage.displayTags(); // আউটপুট: Tags: Nature, Travel
 }
 ```
 
-এই উদাহরণে, `TaggableArticle` এবং `TaggableImageFile` উভয়ই `Taggable` mixin থেকে tagging কার্যকারিতা লাভ করে কোনো code duplication বা জটিল inheritance ছাড়াই। প্রতিটি `Taggable` instance তার নিজস্ব tag-এর তালিকা বজায় রাখে। এটি শেয়ার্ড আচরণ যোগ করার একটি পরিষ্কার এবং পরিমাপযোগ্য উপায়।
+এই উদাহরণে, `TaggableArticle` এবং `TaggableImageFile` উভয়ই `Taggable` mixin থেকে tagging কার্যকারিতা লাভ করে কোনো কোড ডুপ্লিকেশন বা জটিল ইনহেরিটেন্স (inheritance) ছাড়াই। প্রতিটি `Taggable` ইনস্ট্যান্স (instance) তার নিজস্ব ট্যাগ-এর তালিকা বজায় রাখে। এটি শেয়ার করা আচরণ যোগ করার একটি পরিষ্কার এবং পরিমাপযোগ্য উপায়।
 
-### কখন আপনি একটি Mixin ব্যবহার নাও করতে পারেন?
+### কখন Mixin ব্যবহার নাও করতে পারেন?
 
-যদি একটি শক্তিশালী "is-a" সম্পর্ক থাকে এবং class-গুলো সত্যিই একটি সাধারণ মূল পরিচয় শেয়ার করে, তবে প্রথাগত inheritance (`extends`) এখনও বেশি উপযুক্ত হতে পারে। Mixin-গুলো এমন class-গুলোতে *capabilities* বা *aspects* যোগ করার জন্য সবচেয়ে ভালো যা অন্যথায় সম্পর্কহীন হতে পারে।
+যদি একটি শক্তিশালী "is-a" সম্পর্ক থাকে এবং class-গুলো সত্যিই একটি সাধারণ মূল পরিচয় শেয়ার করে, তবে গতানুগতিক ইনহেরিটেন্স (`extends`) এখনও বেশি উপযুক্ত হতে পারে। Mixin-গুলো এমন class-গুলোতে *قابلیت* (capabilities) বা *দিক* (aspects) যোগ করার জন্য সবচেয়ে ভালো যা অন্যথায় সম্পর্কহীন হতে পারে।
 
-### Mix It Up\!
+### এবার মিশিয়ে দেখুন\! (Mix It Up\!)
 
-Mixin-গুলো Dart-এর একটি শক্তিশালী বৈশিষ্ট্য যা code reuse এবং নমনীয় design উৎসাহিত করে। `mixin` দিয়ে কীভাবে তাদের সংজ্ঞায়িত করতে হয়, `with` দিয়ে কীভাবে প্রয়োগ করতে হয় এবং `on` দিয়ে কীভাবে তাদের সীমাবদ্ধ করতে হয় তা বোঝার মাধ্যমে আপনি আরও পরিষ্কার, রক্ষণাবেক্ষণযোগ্য এবং আরও ገላጭ Dart code লিখতে পারবেন। তাই এগিয়ে যান, আপনার class-গুলোতে কিছু নতুন ক্ষমতা mix করা শুরু করুন\!
+Mixin-গুলো Dart-এর একটি শক্তিশালী বৈশিষ্ট্য যা কোড পুনরায় ব্যবহার এবং নমনীয় ডিজাইনকে উৎসাহিত করে। `mixin` দিয়ে কীভাবে তাদের সংজ্ঞায়িত করতে হয়, `with` দিয়ে কীভাবে প্রয়োগ করতে হয়, এবং `on` দিয়ে কীভাবে তাদের সীমাবদ্ধ করতে হয় তা বোঝার মাধ্যমে আপনি আরও পরিষ্কার, রক্ষণাবেক্ষণযোগ্য এবং আরও ভাবপূর্ণ Dart কোড লিখতে পারবেন। তাই আর দেরি কেন, আপনার class-গুলোতে কিছু নতুন ক্ষমতা মিশিয়ে দেওয়া শুরু করুন\!
